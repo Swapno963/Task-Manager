@@ -1,0 +1,109 @@
+import React, { useState } from 'react'
+import SearchTask from './SearchTask'
+import TaskActions from './TaskActions'
+import TaskList from './TaskList'
+import AddTaskModa from './AddTaskModa'
+import NoTaskFound from './NoTaskFound'
+
+export default function TaskBoard() {
+    const defaultTask = {
+        'id': crypto.randomUUID(),
+        'title':'Learn React',
+        'description':'Learn react for better job and good environment',
+        'tags':['web','react','js'],
+        'Priority':'High',
+        'isFavourit':true
+    }
+    const [tasks, setTasks] = useState([defaultTask])
+    const [showAddModal, setShowAddModal] = useState(false)
+    const [taskToUpdate, setTaskToUpdate] = useState(null)
+
+    const handelAddEditTask = (newTask, isAdd) =>{
+        setShowAddModal(false)
+        if(isAdd){
+            setTasks([...tasks, newTask])
+
+        }else{
+            setTasks(
+                tasks.map(task=>{
+                    if(task.id === newTask.id){
+                        return newTask;
+                    }
+                    return task;
+                })
+            )
+        }
+    }
+    const handelEditTask = (task) =>{
+        setTaskToUpdate(task);
+        setShowAddModal(true);
+    }
+    const handelCloseClick = () =>{
+        setShowAddModal(false)
+        setTaskToUpdate(null)
+    }
+    const handelDelete = (id) =>{
+        const taskAfterDelete = tasks.filter(task => task.id != id)
+        setTasks(taskAfterDelete)
+    }
+    const handelDeleteAll = () =>{
+        // setTasks(null) this is not good way
+        tasks.length = 0;
+        setTasks([...tasks])
+    }
+    const handelFab = (taskId) =>{
+        const taskIndex = tasks.findIndex(task => task.id == taskId)
+        const newTask = [...tasks]
+        newTask[taskIndex].isFavourit = !newTask[taskIndex].isFavourit
+        setTasks(newTask)
+    }
+    const handelSeach = (searchTerm) =>{
+        console.log(searchTerm);
+        const filtered = tasks.filter(task=>{
+            task.title.toLowerCase().includes(searchTerm.toLowerCase())
+            }
+        )
+        setTasks([...filtered])
+    }
+
+  return (
+    <section className="mb-20" id="tasks">
+        {/* { showAddModal ? <AddTaskModa/> : ""} */}
+        {/* more efficien way is */}
+
+        { showAddModal && <AddTaskModa
+        handelCloseClick={handelCloseClick} 
+        onSave={handelAddEditTask} 
+        taskToUpdate={taskToUpdate}/>}
+
+        <div className="container">
+            <div className="p-2 flex justify-end">
+                <SearchTask 
+                onSearch={handelSeach}/>
+            </div>
+            <div className="rounded-xl border border-[rgba(206,206,206,0.12)] bg-[#1D212B] px-6 py-8 md:px-9 md:py-16">
+                
+                <TaskActions 
+                onAddClick={()=>setShowAddModal(true)}
+                onDeleteAll={handelDeleteAll}
+                />
+
+                {
+                    tasks.length > 0 ?
+                    (
+                        <TaskList 
+                        onEdit={handelEditTask}
+                        tasks={tasks}
+                        onDelete={handelDelete}
+                        onFab={handelFab}
+                        />
+
+                    ) : (
+                        <NoTaskFound/>
+                    )
+                }
+            </div>
+        </div>
+    </section>
+  )
+}
